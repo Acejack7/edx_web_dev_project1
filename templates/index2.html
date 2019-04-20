@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    User Login
+{% endblock %}
+
+{% block body %}
+
+    <p>{{ message }}</p>
+
+    <form action="{{ url_for('index') }}" method="POST">
+
+        <div class="form-group">
+            <button class="btn btn-primary" name="logout">Logout</button>
+        </div>
+
+    </form>
+
+    <h1>Search for books</h1>
+
+    <form action="{{ url_for('book_search') }}" method="post">
+
+        <p>Book:</p>
+        <div class="form-group">
+            <input class="form-control" name="book_keywords" placeholder="Please type title, author or isbn...">
+        </div>
+
+        <div class="form-group">
+            <button class="btn btn-primary">Search!</button>
+        </div>
+
+    </form>
+
+{% endblock %}

@@ -1,6 +1,5 @@
 import os
-
-from flask import Flask, render_template, request, session, redirect, g
+from flask import Flask, render_template, request, session, g
 # from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -24,82 +23,66 @@ engine = create_engine(db_url)
 db = scoped_session(sessionmaker(bind=engine))
 
 
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/", methods=["GET", "POST"])
 def index():
+
     if request.method == 'POST':
         session.pop('user', None)
+
+        # Get form information.
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if 'register' in request.form:
+            # Check if user provided any username and password
+            if username == "" or password == "":
+                return render_template("error_register.html", message="Username and password fields cannot be empty.")
+
+            # Check if user exists.
+            user_exist = db.execute("SELECT name FROM users WHERE name = :username", {"username": username}).fetchall()
+            if user_exist != []:
+                return render_template("error_register.html", message="Username already taken.")
+
+            # Add user to database.
+            db.execute("INSERT INTO users (name, password) VALUES (:username, :password)",
+                       {"username": username, "password": password})
+            db.commit()
+
+            # Create a session and return successful registration
+            session['user'] = username
+            message = f"You are logged as {username}."
+
+            return render_template("index2.html", message=message)
+
+        elif 'login' in request.form:
+            # Check db for user
+            user = db.execute("SELECT * FROM users WHERE name = :username AND password = :password",
+                              {"username": username, "password": password}).fetchall()
+
+            # Check if user's password is correct
+            try:
+                pw_db = user[0]["password"]
+            except IndexError:
+                return render_template("error_login.html", message="Username or password is incorrect.")
+
+            if password != pw_db:
+                return render_template("error_login.html", message="Username or password is incorrect.")
+
+            if user != []:
+                session['user'] = username
+                message = f"You are logged as {username}."
+                return render_template("index2.html", message=message)
+            else:
+                return render_template("error_login.html", message="Username or password is incorrect.")
+
+        elif 'logout' in request.form:
+            message = "Succesfully logged out."
+            return render_template("index.html", message=message)
 
     return render_template("index.html")
 
 
-@app.route("/register")
-def register():
-    return render_template("register.html")
-
-
-@app.route("/register/form/", methods=["POST"])
-def register_form():
-    """Register"""
-
-    session.pop('user', None)
-
-    # Get form information.
-    username = request.form.get("username")
-    password = request.form.get("password")
-
-    # Check if user provided any username and password
-    if username == "" or password == "":
-        return render_template("error_register.html", message="Username and password fields cannot be empty.")
-
-    # Check if user exists.
-    user_exist = db.execute("SELECT name FROM users WHERE name = :username", {"username": username}).fetchall()
-
-    if user_exist != []:
-        return render_template("error_register.html", message="Username already taken.")
-
-    # Add user to database.
-    db.execute("INSERT INTO users (name, password) VALUES (:username, :password)",
-               {"username": username, "password": password})
-    db.commit()
-
-    session['user'] = username
-
-    return render_template("success_register.html")
-
-
-@app.route("/login/")
-def login():
-    return render_template("login.html")
-
-
-@app.route("/login/form/", methods=["POST"])
-def login_form():
-    """Log in"""
-
-    # Get form information.
-    username = request.form.get("username")
-    password = request.form.get("password")
-
-    # Make sure the flight exists.
-    user = db.execute("SELECT * FROM users WHERE name = :username AND password = :password",
-                      {"username": username, "password": password}).fetchall()
-
-    try:
-        pw_db = user[0]["password"]
-    except IndexError:
-        return render_template("error_login.html", message="Username or password is incorrect.")
-
-    if password != pw_db:
-        return render_template("error_login.html", message="Username or password is incorrect.")
-
-    if user != []:
-        session['user'] = username
-        return render_template("success_login.html", user_info=user)
-    else:
-        return render_template("error_login.html", message="Username or password is incorrect.")
-
-
-@app.route("/book_search/", methods=["POST"])
+@app.route("/book_search", methods=["POST"])
 def book_search():
     """Search for books and return the results"""
 
@@ -119,12 +102,9 @@ def book_search():
 def book(book_id):
     book_info = db.execute("SELECT * FROM books WHERE id = :book_id", {"book_id": book_id}).fetchall()
 
-    if g.user:
-        msg = "LOGGED"
-    else:
-        msg = "NOT LOGGED"
+    message = session['user']
 
-    return render_template("book.html", book=book_info, msg=msg)
+    return render_template("book.html", book=book_info, message=message)
 
 
 @app.before_request
