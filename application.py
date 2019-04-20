@@ -98,13 +98,35 @@ def book_search():
     return render_template("book_search.html", book_results=book_results, user=user)
 
 
-@app.route("/book/<int:book_id>")
+@app.route("/book/<int:book_id>", methods=["GET", "POST"])
 def book(book_id):
+    user = session['user']
+
+    message = ''
+
     book_info = db.execute("SELECT * FROM books WHERE id = :book_id", {"book_id": book_id}).fetchall()
 
-    message = session['user']
+    if request.method == "POST":
+        # Get information about user id
+        user_id = db.execute("SELECT id FROM users WHERE name = :user", {"user": user}).fetchall()
 
-    return render_template("book.html", book=book_info, message=message)
+        # Check if user already reviewed the book
+        current_review = db.execute("SELECT * FROM reviews WHERE books_id = :book_id AND reviews.users_id = :user_id",
+                                   {"book_id": book_id, "user_id": user_id[0].id}).fetchall()
+        if current_review != []:
+            message = "You have already reviewed the book!"
+            pass
+        else:
+            body = request.form.get("body")
+
+            # Add review to database
+            db.execute("INSERT INTO reviews (users_id, body, books_id) VALUES (:user_id, :body, :book_id)",
+                    {"user_id": user_id[0].id, "body": body, "book_id": book_id})
+            db.commit()
+
+    book_reviews = db.execute("SELECT body, name FROM reviews, users WHERE books_id = :book_id AND reviews.users_id=users.id", {"book_id": book_id}).fetchall()
+
+    return render_template("book.html", book=book_info, user=user, book_reviews=book_reviews, message=message)
 
 
 @app.before_request

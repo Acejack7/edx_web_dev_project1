@@ -5,25 +5,37 @@
 {% endblock %}
 
 {% block body %}
+    <p>Logged as {{ user }}</p>
+
     <h1>Book Details:</h1>
 
+    {% for book_details in book %}
     <ul>
-        {% for book_details in book %}
-            <li>Title: {{ book_details.title }}</li>
-            <li>Author: {{ book_details.author }}</li>
-            <li>Year: {{ book_details.year }}</li>
-            <li>ISBN: {{ book_details.isbn }}</li>
-        {% endfor %}
+        <li>Title: {{ book_details.title }}</li>
+        <li>Author: {{ book_details.author }}</li>
+        <li>Year: {{ book_details.year }}</li>
+        <li>ISBN: {{ book_details.isbn }}</li>
     </ul>
 
-    <div>
-        LEAVE A REVIEW
-    </div>
+    <h4>{{ message }}</h4>
+
+    <form action="{{ url_for('book', book_id=book_details.id) }}" method="post">
+        <span>Author: <strong>{{ user }}</strong></span>
+        <div>
+            <input type="text" name="body" placeholder="Enter your review here...">
+        </div>
+        <button class="btn btn-primary">Add Review</button>
+    </form>
+    {% endfor %}
 
     <div>
-        REVIEWS HERE
+        {% for review in book_reviews %}
+        <ul>
+            <li>Author: {{ review.name }}</li>
+            <li>{{review.body }}</li>
+        </ul>
+        {% endfor %}
     </div>
-
-    <p>{{ message }}</p>
+    
 
 {% endblock %}
