@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    User Login
+{% endblock %}
+
+{% block body %}
+
+    <h1>Welcome to the Book Review Website!</h1>
+
+    <p>On this page you will be able to leave a review of a book.</p>
+    <p>If you don't have account yet, please register. Otherwise - please log in.</p>
+
+    <div>
+        <a href="{{ url_for('register') }}">REGISTER</a>
+    </div>
+
+    <div>
+        <a href="{{ url_for('login') }}">LOG IN</a>
+    </div>
+    
+{% endblock %}

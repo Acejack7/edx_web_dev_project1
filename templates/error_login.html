@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Error
+{% endblock %}
+
+{% block body %}
+    <h1>Log in Error</h1>
+
+    <h3>{{ message }}</h3>
+
+    <h4>Please click on "Go Back" button and try again.</h4>
+    <a href="{{ url_for('login') }}">Go Back</a>
+
+{% endblock %}

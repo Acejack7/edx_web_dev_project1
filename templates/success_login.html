@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Success!
+{% endblock %}
+
+{% block body %}
+    {% for info in user_info %}
+    <h1>Hello, {{ info.name }}!</h1>
+    <h2>You have successfully logged in to the page!</h2>
+
+    <h1>Search for books</h1>
+
+    <form action="{{ url_for('book_search') }}" method="post">
+
+        <p>Book:</p>
+        <div class="form-group">
+            <input class="form-control" name="book_keywords" user_id="{{ info.id }}" placeholder="Please type title, author or isbn...">
+        </div>
+
+        <div class="form-group">
+            <button class="btn btn-primary">Search!</button>
+        </div>
+        
+    {% endfor %}
+    </form>
+
+    <!--<h4>Click <a href="{{ url_for('index') }}">HERE</a> and you will be redirected to the main page.
+    Please use provided credentials to log in.</h4>-->
+
+{% endblock %}
