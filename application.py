@@ -1,6 +1,6 @@
 import os
-from flask import Flask, render_template, request, session, g
-# from flask_session import Session
+import requests
+from flask import Flask, render_template, request, session, g, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -13,14 +13,17 @@ if not os.getenv("DATABASE_URL"):
 else:
     db_url = os.getenv("DATABASE_URL")
 
-# Configure session to use filesystem
-# app.config["SESSION_PERMANENT"] = False
-# app.config["SESSION_TYPE"] = "filesystem"
-# Session(app)
-
 # Set up database
 engine = create_engine(db_url)
 db = scoped_session(sessionmaker(bind=engine))
+
+
+@app.before_request
+def check_if_logged():
+    g.user = None
+
+    if 'user' in session:
+        g.user = session['user']
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -88,6 +91,9 @@ def book_search():
 
     # Get information about the book
     book_keywords = request.form.get("book_keywords")
+    if type(book_keywords) == str:
+        book_keywords = book_keywords.lower()
+
     user_id = request.form.get("user_id")
 
     user = db.execute("SELECT * FROM users WHERE id = :user_id", {"user_id": user_id}).fetchall()
@@ -100,41 +106,84 @@ def book_search():
 
 @app.route("/book/<int:book_id>", methods=["GET", "POST"])
 def book(book_id):
-    user = session['user']
+    # Check if user is logged
+    try:
+        user = session['user']
+    except KeyError:
+        return render_template("index.html", message="You are logged out.")
 
     message = ''
 
+    # Get information about the book from database
     book_info = db.execute("SELECT * FROM books WHERE id = :book_id", {"book_id": book_id}).fetchall()
 
     if request.method == "POST":
         # Get information about user id
-        user_id = db.execute("SELECT id FROM users WHERE name = :user", {"user": user}).fetchall()
+        user_id = db.execute("SELECT id FROM users WHERE name = :user", {"user": user}).fetchone()
 
         # Check if user already reviewed the book
         current_review = db.execute("SELECT * FROM reviews WHERE books_id = :book_id AND reviews.users_id = :user_id",
-                                   {"book_id": book_id, "user_id": user_id[0].id}).fetchall()
+                                    {"book_id": book_id, "user_id": user_id.id}).fetchall()
         if current_review != []:
             message = "You have already reviewed the book!"
             pass
         else:
             body = request.form.get("body")
+            rating = request.form.get("rating")
+
+            if len(body) < 1:
+                message = "You have to write anything about the book - review cannot be empty."
+                pass
 
             # Add review to database
-            db.execute("INSERT INTO reviews (users_id, body, books_id) VALUES (:user_id, :body, :book_id)",
-                    {"user_id": user_id[0].id, "body": body, "book_id": book_id})
+            db.execute("INSERT INTO reviews (users_id, body, books_id, rating) VALUES (:user_id, :body, :book_id, :rating)",
+                       {"user_id": user_id.id, "body": body, "book_id": book_id, "rating": rating})
             db.commit()
 
-    book_reviews = db.execute("SELECT body, name FROM reviews, users WHERE books_id = :book_id AND reviews.users_id=users.id", {"book_id": book_id}).fetchall()
+    # Get all reviews from database
+    book_reviews = db.execute("SELECT body, rating, name FROM reviews, users WHERE books_id = :book_id AND reviews.users_id=users.id", {"book_id": book_id}).fetchall()
 
-    return render_template("book.html", book=book_info, user=user, book_reviews=book_reviews, message=message)
+    # Get data about the book from GoodReads API
+    res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "37HhpGI6qyB90DUbT0RUw", "isbns": "9781632168146"})
+    if res.status_code != 200:
+        votes_num = "Couldn't connect to GoodReads API."
+        avg_rating = "No information about book's global, average rating."
+    else:
+        book = res.json()
+        votes_num = book['books'][0]['work_ratings_count']
+        avg_rating = book['books'][0]['average_rating']
 
+    return render_template("book.html", book=book_info, user=user, book_reviews=book_reviews, message=message, votes_num=votes_num, avg_rating=avg_rating)
 
-@app.before_request
-def check_if_logged():
-    g.user = None
+# API
+@app.route("/api/<string:book_isbn>")
+def book_api(book_isbn):
+    # Show details about the book in json format
 
-    if 'user' in session:
-        g.user = session['user']
+    book = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": str(book_isbn)}).fetchone()
+    if book is None:
+        return jsonify({"error": "No book found under specified ISBN."})
+
+    else:
+        # Get number of reviews
+        check_reviews_count = db.execute("SELECT COUNT(*) FROM reviews WHERE books_id = :book_id", {"book_id": book.id}).fetchone()
+        reviews_count = check_reviews_count.count
+
+        # Get average number of rating
+        check_reviews_rating = db.execute("SELECT AVG(rating) FROM reviews WHERE books_id = :book_id", {"book_id": book.id}).fetchone()
+        # Normalize to float with one decimal represented as string
+        reviews_rating = check_reviews_rating.avg
+        if reviews_rating is None:
+            reviews_rating = ""
+
+        return jsonify({
+              "title": book.title,
+              "author": book.author,
+              "year": book.year,
+              "isbn": book.isbn,
+              "review_count": reviews_count,
+              "average_score": reviews_rating
+          })
 
 
 app.run(host="0.0.0.0")

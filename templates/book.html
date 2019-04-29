@@ -5,8 +5,6 @@
 {% endblock %}
 
 {% block body %}
-    <p>Logged as {{ user }}</p>
-
     <h1>Book Details:</h1>
 
     {% for book_details in book %}
@@ -17,12 +15,25 @@
         <li>ISBN: {{ book_details.isbn }}</li>
     </ul>
 
+    <div>
+        <h4><a href="https://www.goodreads.com/">good<b>reads</b></a> ratings:</h4>
+        <ul>
+            <li>Number of votes: {{ votes_num }}</li>
+            <li>Average rating: {{ avg_rating }}</li>
+        </ul>
+    </div>
+
     <h4>{{ message }}</h4>
 
     <form action="{{ url_for('book', book_id=book_details.id) }}" method="post">
         <span>Author: <strong>{{ user }}</strong></span>
         <div>
             <input type="text" name="body" placeholder="Enter your review here...">
+            <select name="rating">
+                {% for i in range(5) %}
+                    <option>{{ i+1 }}</option>
+                {% endfor %}
+            </select>
         </div>
         <button class="btn btn-primary">Add Review</button>
     </form>
@@ -32,7 +43,8 @@
         {% for review in book_reviews %}
         <ul>
             <li>Author: {{ review.name }}</li>
-            <li>{{review.body }}</li>
+            <li>Rating: {{ review.rating }}</li>
+            <li>{{ review.body }}</li>
         </ul>
         {% endfor %}
     </div>
