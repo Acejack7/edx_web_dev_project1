@@ -1,0 +1,65 @@
+/* layout.html */
+body {
+    background-color: rgba(237, 234, 220, 0.75);
+}
+
+#logo-text {
+    background-color: rgba(255, 215, 0, 0.2);
+    text-align: center;
+}
+
+#logo-text h2 {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#logo-text p {
+    font-size: 14px;
+    font-style: italic;
+}
+
+/* index.html */
+#index-left {
+    width: 40%;
+    float: left;
+}
+
+#index-right {
+    float: right;
+    width: 50%;
+}
+
+#index-right img {
+    max-width: 100%;
+}
+
+.creds-text {
+    background-color: rgba(210,105,30, 0.5);
+}
+
+#index-text {
+    background-color: rgba(222, 184, 135, 0.5);
+}
+
+.awarded-text {
+    font-weight: bold;
+}
+
+.btn-login {
+    float: left;
+}
+
+.btn-login .btn-primary {
+    background-color: saddlebrown;
+    border: 0;
+    font-size: 30px;
+}
+
+.btn-register {
+    float: right;
+}
+
+.btn-register .btn-primary {
+    background-color: saddlebrown;
+    border: 0;
+    font-size: 30px;
+}

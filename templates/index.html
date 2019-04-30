@@ -5,30 +5,46 @@
 {% endblock %}
 
 {% block body %}
-    <p>{{ message }}</p>
+    <div id="index-left">
+        <div id="index-text">
+            <p>{{ message }}</p>
 
-    <p>If you don't have account yet, please register. Otherwise - please log in.</p>
-
-    <form action="{{ url_for('index') }}" method="post">
-
-        <p>USERNAME:</p>
-        <div class="form-group">
-            <input class="form-control" name="username" placeholder="Your Username">
+            <p>
+                Please provide username (login) and password.<br>
+                If you don't have account yet, click <span class="awarded-text">Register</span> button.<br>
+                Otherwise - click <span class="awarded-text">Log in</span> button.
+            </p>
         </div>
+        <form action="{{ url_for('index') }}" method="post">
 
-        <p>PASSWORD:</p>
-        <div class="form-group">
-            <input class="form-control" name="password" placeholder="Your Password">
-        </div>
+            <p class="creds-text">Username:</p>
+            <div class="form-group">
+                <input class="form-control" name="username" placeholder="Your Username">
+            </div>
 
-        <div class="form-group">
-            <button class="btn btn-primary" name="login">Log in</button>
-        </div>
-    
-        <div class="form-group">
-            <button class="btn btn-primary" name="register">Register</button>
-        </div>
-    
-    </form>
+            <p class="creds-text">Password:</p>
+            <div class="form-group">
+                <input type="password" class="form-control" name="password" placeholder="Your Password">
+            </div>
+
+            <div>
+                <div class="form-group btn-login">
+                    <button class="btn btn-primary" name="login">Log in</button>
+                </div>
+            
+                <div class="form-group btn-register">
+                    <button class="btn btn-primary" name="register">Register</button>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+
+    <div id="index-right">
+        <!-- image from http://clipart-library.com/free-images-of-books.html -->
+        <img src="static/images/logo.png">
+    </div>
+
 
 {% endblock %}

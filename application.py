@@ -28,7 +28,6 @@ def check_if_logged():
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-
     if request.method == 'POST':
         session.pop('user', None)
 
@@ -81,6 +80,9 @@ def index():
         elif 'logout' in request.form:
             message = "Succesfully logged out."
             return render_template("index.html", message=message)
+    
+    if g.user:
+        return render_template("index2.html")
 
     return render_template("index.html")
 
