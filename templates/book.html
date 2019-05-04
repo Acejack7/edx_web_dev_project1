@@ -5,46 +5,57 @@
 {% endblock %}
 
 {% block body %}
-    <h1>Book Details:</h1>
-
-    {% for book_details in book %}
-    <ul>
-        <li>Title: {{ book_details.title }}</li>
-        <li>Author: {{ book_details.author }}</li>
-        <li>Year: {{ book_details.year }}</li>
-        <li>ISBN: {{ book_details.isbn }}</li>
-    </ul>
-
-    <div>
-        <h4><a href="https://www.goodreads.com/">good<b>reads</b></a> ratings:</h4>
-        <ul>
-            <li>Number of votes: {{ votes_num }}</li>
-            <li>Average rating: {{ avg_rating }}</li>
-        </ul>
+    <div id="book-top" class="main-text col-lg-12">
+        <p><a href="{{ url_for('index') }}" class="click-here">CLICK HERE</a> to look for another book.</p>
+        <h3>Book Details:</h3>
     </div>
 
-    <h4>{{ message }}</h4>
+    <div id="book-left" class="col-lg-6">
+        {% for book_details in book %}
+        <ul class="details_list">
+            <li>Title: {{ book_details.title }}</li>
+            <li>Author: {{ book_details.author }}</li>
+            <li>Year: {{ book_details.year }}</li>
+            <li>ISBN: {{ book_details.isbn }}</li>
+        </ul>
 
-    <form action="{{ url_for('book', book_id=book_details.id) }}" method="post">
-        <span>Author: <strong>{{ user }}</strong></span>
         <div>
-            <input type="text" name="body" placeholder="Enter your review here...">
-            <select name="rating">
-                {% for i in range(5) %}
-                    <option>{{ i+1 }}</option>
-                {% endfor %}
-            </select>
+            <h4 class="main-text"><a href="https://www.goodreads.com/" class="click-here">good<b>reads</b></a> ratings:</h4>
+            <ul class="details_list">
+                <li>Number of votes: {{ votes_num }}</li>
+                <li>Average rating: {{ avg_rating }}</li>
+            </ul>
         </div>
-        <button class="btn btn-primary">Add Review</button>
-    </form>
-    {% endfor %}
 
-    <div>
+        <form action="{{ url_for('book', book_id=book_details.id) }}" method="post">
+            <p class="main-text">If you read the book, feel free to rate a book and leave a review!<br>You can rate the book from <b>5</b> (the best) to <b>1</b> (the worst).<br>
+                Please note that you can post only one review per book.</p>
+            <h4 class="alert-danger">{{ message }}</h4>
+            <p>Author: <strong>{{ user }}</strong></p>
+            <p>Rating: 
+                <strong><select name="rating">
+                    {% for i in range(5) %}
+                        <option>{{ i+1 }}</option>
+                    {% endfor %}
+                </select></strong>
+            </p>
+            <p><textarea type="text" name="body" placeholder="Enter your review here..." id="review_body"></textarea></p>
+            <button class="btn btn-primary btn-add-rev">Add Review</button>
+        </form>
+        {% endfor %}
+    </div>
+
+    <div id="book-right" class="col-lg-6">
+        <!-- image from http://clipart-library.com/free-images-of-books.html -->
+        <img src="static/images/single_book.png">
+    </div>
+
+    <div id="reviews" class="col-lg-6">
         {% for review in book_reviews %}
-        <ul>
-            <li>Author: {{ review.name }}</li>
-            <li>Rating: {{ review.rating }}</li>
-            <li>{{ review.body }}</li>
+        <ul id="current_reviews">
+            <li><b>Author:</b> {{ review.name }}</li>
+            <li><b>Rating:</b> {{ review.rating }}</li>
+            <li id="review_body">{{ review.body }}</li>
         </ul>
         {% endfor %}
     </div>

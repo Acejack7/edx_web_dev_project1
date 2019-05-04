@@ -7,17 +7,14 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-# Check for environment variable and set database url
-if not os.getenv("DATABASE_URL"):
-    db_url = "postgres://hlojtlqjgyszxx:0061b447e9dbc04cc25bc341745c006ae869096665107472c5f1eccf5446ec1e@ec2-54-228-252-67.eu-west-1.compute.amazonaws.com:5432/d4mg4mean0buf7"
-else:
-    db_url = os.getenv("DATABASE_URL")
+# Set database url by using env var DATABASE_URL
+db_url = os.getenv("DATABASE_URL")
 
 # Set up database
 engine = create_engine(db_url)
 db = scoped_session(sessionmaker(bind=engine))
 
-
+# Check if user is logged
 @app.before_request
 def check_if_logged():
     g.user = None
@@ -52,7 +49,7 @@ def index():
 
             # Create a session and return successful registration
             session['user'] = username
-            message = f"You are logged as {username}."
+            message = f"You are successfully registered and automatically logged as {username}."
 
             return render_template("index2.html", message=message)
 
@@ -80,9 +77,10 @@ def index():
         elif 'logout' in request.form:
             message = "Succesfully logged out."
             return render_template("index.html", message=message)
-    
+
     if g.user:
-        return render_template("index2.html")
+        message = f"You are logged as {g.user}."
+        return render_template("index2.html", message=message)
 
     return render_template("index.html")
 
@@ -106,7 +104,7 @@ def book_search():
     return render_template("book_search.html", book_results=book_results, user=user)
 
 
-@app.route("/book/<int:book_id>", methods=["GET", "POST"])
+@app.route("/<int:book_id>", methods=["GET", "POST"])
 def book(book_id):
     # Check if user is logged
     try:
@@ -146,7 +144,7 @@ def book(book_id):
     book_reviews = db.execute("SELECT body, rating, name FROM reviews, users WHERE books_id = :book_id AND reviews.users_id=users.id", {"book_id": book_id}).fetchall()
 
     # Get data about the book from GoodReads API
-    res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "37HhpGI6qyB90DUbT0RUw", "isbns": "9781632168146"})
+    res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "37HhpGI6qyB90DUbT0RUw", "isbns": book_info[0].isbn})
     if res.status_code != 200:
         votes_num = "Couldn't connect to GoodReads API."
         avg_rating = "No information about book's global, average rating."
@@ -173,19 +171,21 @@ def book_api(book_isbn):
 
         # Get average number of rating
         check_reviews_rating = db.execute("SELECT AVG(rating) FROM reviews WHERE books_id = :book_id", {"book_id": book.id}).fetchone()
-        # Normalize to float with one decimal represented as string
         reviews_rating = check_reviews_rating.avg
         if reviews_rating is None:
             reviews_rating = ""
 
+        # Return information about the book in json format
         return jsonify({
               "title": book.title,
               "author": book.author,
               "year": book.year,
               "isbn": book.isbn,
               "review_count": reviews_count,
-              "average_score": reviews_rating
+              "average_score": str(round(reviews_rating, 2))
           })
 
 
-app.run(host="0.0.0.0")
+# Automatically run app
+if __name__ == "__main__":
+    app.run(host="0.0.0.0")

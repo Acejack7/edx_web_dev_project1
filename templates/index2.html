@@ -5,30 +5,40 @@
 {% endblock %}
 
 {% block body %}
+    
 
-    <p>{{ message }}</p>
-
-    <form action="{{ url_for('index') }}" method="POST">
-
-        <div class="form-group">
-            <button class="btn btn-primary" name="logout">Logout</button>
+    <div id="index2-left">
+        <div class="main-text">
+            <h3>SEARCH FOR BOOKS</h3>
+            <p>Please type below the title, author or isbn of the book or part of those names.<br> Capitalization of letters is not relevant.</p>
         </div>
 
-    </form>
+        <form action="{{ url_for('book_search') }}" method="post">
 
-    <h1>Search for books</h1>
+            <div class="form-group">
+                <input class="form-control" name="book_keywords" placeholder="Please type title, author or isbn...">
+            </div>
 
-    <form action="{{ url_for('book_search') }}" method="post">
+            <div class="form-group" id="btn-search">
+                <button class="btn btn-primary">Search</button>
+            </div>
 
-        <p>Book:</p>
-        <div class="form-group">
-            <input class="form-control" name="book_keywords" placeholder="Please type title, author or isbn...">
-        </div>
+        </form>
+    </div>
 
-        <div class="form-group">
-            <button class="btn btn-primary">Search!</button>
-        </div>
+    <div id="index2-right">
+        <p class="logout-message">{{ message }}</p>
 
-    </form>
+        <form action="{{ url_for('index') }}" method="POST" id="logout-form">
+
+            <div class="form-group">
+                <button class="btn btn-primary" name="logout">Logout</button>
+            </div>
+            
+            <!-- image from http://clipart-library.com/free-images-of-books.html -->
+            <img src="static/images/owl.png">
+
+        </form>
+    </div>
 
 {% endblock %}

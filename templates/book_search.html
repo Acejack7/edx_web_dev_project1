@@ -5,38 +5,30 @@
 {% endblock %}
 
 {% block body %}
+    <div class="main-text">
+        <p>Interested in some other book? <a href="{{ url_for('index') }}" class="click-here">CLICK HERE</a> to search again.<br><b>Results</b>:</p>
+    </div>
 
-    <p>{{ message }}</p>
+    <div id="book-search-left">
+        <ul id="book-results">
+            {% for book in book_results %}
+                <li>
+                    <a href="{{ url_for('book', book_id=book.id) }}">
+                        "{{ book.title }}" - {{ book.author }},
+                    </a>
+                    {{ book.isbn }}
+                </li>
+            {% else %}
+                <li>No books found.</li>
+            {% endfor %}
+        </ul>
+        
+        <p id="search-formatting"><b>Format</b>: title - author, isbn</p>
+    </div>
 
-    <h1>Searching for books - results:</h1>
-
-    <ul>
-        {% for book in book_results %}
-            <li>
-                <a href="{{ url_for('book', book_id=book.id) }}">
-                    "{{ book.title }}" - {{ book.author }}, {{ book.isbn }}
-                </a>
-            </li>
-        {% else %}
-            <li>No books found.</li>
-        {% endfor %}
-    </ul>
-
-    
-
-    <!--<table>
-        <tr>
-            <td>Title</td>
-            <td>Author</td>
-            <td>ISBN</td>
-        </tr>
-        {% for book in book_results %}
-        <tr>
-            <td>{{ book.title }}</td>
-            <td>{{ book.author }}</td>
-            <td>{{ book.isbn }}</td>
-        </tr>
-        {% endfor %}
-    </table>-->
+    <div id="book-search-right">
+        <!-- image from http://clipart-library.com/free-images-of-books.html -->
+        <img src="static/images/book_search.png">
+    </div>
 
 {% endblock %}
